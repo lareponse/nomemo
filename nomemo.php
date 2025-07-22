@@ -1,6 +1,14 @@
 <?php
-// exchange.php
-header('Access-Control-Allow-Origin: *'); // allow all origins
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204); // No content
+    exit;
+}
+
+
 $room = preg_replace('/[^a-z0-9_-]/i', '', $_GET['room'] ?? '');
 $from = preg_replace('/[^a-z0-9_-]/i', '', $_GET['from'] ?? '');
 
@@ -16,8 +24,9 @@ if (!is_dir($roomPath)) mkdir($roomPath, 0777, true);
 // POST = write message
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $text = trim(file_get_contents('php://input'));
-    $ts = str_replace('.', '', sprintf('%.6f', microtime(true)));
-    $filename = "$ts" . "_$from.txt";
+    $ts = round(microtime(true) * 1000);
+
+    $filename = "{$ts}_{$from}.txt";
     file_put_contents("$roomPath/$filename", $text);
     http_response_code(204);
     exit;

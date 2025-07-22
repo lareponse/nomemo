@@ -46,16 +46,27 @@
         Your name: <input id="from" placeholder="alice">
         <button onclick="join()">Join</button>
     </div>
+    <div id="poll-controls" hidden>
+        <button onclick="pollOnce()">Manual Poll</button>
+        <button onclick="startAutoPoll()">Auto Poll (42s)</button>
+        <span id="poll-status"></span>
+    </div>
 
     <div id="chat" hidden></div>
 
     <div id="input" hidden>
         <input id="msg" placeholder="Type a message..." onkeydown="if(event.key==='Enter') send()">
         <button onclick="send()">Send</button>
+        <button onclick="clearChat()">Clear</button>
+
     </div>
 
     <script>
-        let ROOM = '', FROM = '', POLLING = false;
+        let ROOM = '', FROM = '';
+
+        let POLLING = false;
+        let POLL_TIMER = null;
+        let AUTO_POLL_END = 0;
 
         function url(room, from) {
             return `http://localhost:8000/nomemo.php?room=${encodeURIComponent(room)}&from=${encodeURIComponent(from)}`
@@ -71,8 +82,10 @@
             document.getElementById('info').style.display = 'none';
             document.getElementById('chat').hidden = false;
             document.getElementById('input').hidden = false;
+            document.getElementById('poll-controls').hidden = false;
             loadHistory();
-            poll();
+
+            pollOnce();
         }
 
         function send() {
@@ -81,25 +94,40 @@
             if (!text) return;
             input.value = '';
 
-            const ts = Date.now().toString() + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+            const ts = Date.now();
             const msg = { from: FROM, msg: text, ts };
 
-            // Append to chat UI
+            resetAutoPollTimeout();  // reset countdown on sending
             appendMsg(msg);
 
-            // Store locally
             const key = `nomemo-chat-${ROOM}-${FROM}`;
             let stored = JSON.parse(localStorage.getItem(key) || '[]');
             stored.push(msg);
             localStorage.setItem(key, JSON.stringify(stored));
 
-            // Send to server
             fetch(url(ROOM, FROM), {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: text
             });
         }
 
+
+        function clearChat() {
+            if (!ROOM || !FROM) return;
+
+            const key = `nomemo-chat-${ROOM}-${FROM}`;
+            localStorage.removeItem(key);
+
+            const msg = { from: FROM, msg: '[cleared]', ts: Date.now() };
+            appendMsg(msg);
+
+            fetch(url(ROOM, FROM), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: msg.msg
+            });
+        }
 
         function loadHistory() {
             const key = `nomemo-chat-${ROOM}-${FROM}`;
@@ -107,36 +135,67 @@
             for (const m of stored) appendMsg(m);
         }
 
-        async function poll() {
-            if (POLLING) return;
-            POLLING = true;
-
+        async function pollOnce() {
             const key = `nomemo-chat-${ROOM}-${FROM}`;
             let stored = JSON.parse(localStorage.getItem(key) || '[]');
 
-            while (true) {
-                try {
-                    const res = await fetch(url(ROOM, FROM));
-                    const msgs = await res.json();
+            try {
+                const res = await fetch(url(ROOM, FROM));
+                const msgs = await res.json();
 
-                    for (const m of msgs) {
-                        if (stored.some(existing => existing.ts === m.ts && existing.from === m.from)) continue;
-                        stored.push(m);
-                        appendMsg(m);
-                    }
-
-                    localStorage.setItem(key, JSON.stringify(stored));
-                } catch (e) {
-                    console.warn('Polling error:', e);
+                for (const m of msgs) {
+                    if (stored.some(existing => existing.ts === m.ts && existing.from === m.from)) continue;
+                    stored.push(m);
+                    appendMsg(m);
+                    resetAutoPollTimeout();
                 }
+
+                localStorage.setItem(key, JSON.stringify(stored));
+            } catch (e) {
+                console.warn('Polling error:', e);
+            }
+        }
+
+        function startAutoPoll() {
+            resetAutoPollTimeout();
+            if (!POLLING) {
+                POLLING = true;
+                runPollLoop();
+            }
+        }
+
+        function resetAutoPollTimeout() {
+            AUTO_POLL_END = Date.now() + 42000;
+            updatePollStatus();
+        }
+
+        async function runPollLoop() {
+            while (POLLING) {
+                if (Date.now() > AUTO_POLL_END) {
+                    POLLING = false;
+                    updatePollStatus();
+                    break;
+                }
+                await pollOnce();
                 await new Promise(r => setTimeout(r, 1000));
             }
         }
+        function updatePollStatus() {
+            const s = document.getElementById('poll-status');
+            if (!POLLING) {
+                s.textContent = "Auto Poll OFF";
+            } else {
+                const secs = Math.floor((AUTO_POLL_END - Date.now()) / 1000);
+                s.textContent = `Auto Poll ON (${secs}s left)`;
+            }
+        }
+        setInterval(updatePollStatus, 1000); // keep status updating
 
         function appendMsg(m) {
             const chat = document.getElementById('chat');
             const div = document.createElement('div');
-            const ts = new Date(parseInt(m.ts.slice(0, 10)) * 1000).toLocaleTimeString();
+            console.log(m.ts);
+            const ts = new Date(m.ts).toLocaleTimeString();
             div.innerHTML = `<b>${m.from}</b> <small>${ts}</small>: ${m.msg}`;
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
