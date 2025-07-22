@@ -3,21 +3,16 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Daily Inspiration</title>
-    <link rel="stylesheet" href="spikizi.css">
+    <title>2048 Game</title>
+    <link rel="stylesheet" href="2048.css">
 </head>
 
 <body>
 
-    <!-- Quote Mode -->
-    <div id="quote-mode">
-        <h1>✨ Daily Inspiration</h1>
-        <div class="quotes-grid" id="quotes-grid">
-            <!-- 9 quote cards will be loaded here -->
-        </div>
-        <div class="controls">
-            <button onclick="loadNewQuotes()">Refresh Quotes</button>
-            <button onclick="toggleAutoRefresh()">Auto Refresh</button>
+    <!-- Game Mode -->
+    <div id="game-mode">
+        <div id="game-container">
+            <!-- Game will be initialized here -->
         </div>
     </div>
 
@@ -39,9 +34,9 @@
             <input id="msg" placeholder="Type a message..." onkeydown="if(event.key==='Enter') send()">
             <button onclick="send()">Send</button>
             <button onclick="clearChat()">Clear</button>
-            <button onclick="switchToQuotes()">Back to Quotes</button>
+            <button onclick="switchToGame()">Back to Game</button>
         </div>
     </div>
-    <script src="nomemo.js"></script>
+    <script src="2048.js"></script>
 </body>
 </html>
