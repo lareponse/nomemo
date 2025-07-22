@@ -7,6 +7,34 @@ let POLLING = false;
 let POLL_TIMER = null;
 let AUTO_POLL_END = 0;
 
+
+function createChatHTML() {
+  const chatDiv = document.createElement('div');
+  chatDiv.id = 'chat-mode';
+  chatDiv.className = 'hidden';
+  chatDiv.innerHTML = `
+    <h2>nomemo</h2>
+    <div id="info">
+        Room: <input id="room" placeholder="room123">
+        Your name: <input id="from" placeholder="alice">
+        <button onclick="join()">Join</button>
+    </div>
+    <div id="poll-controls" class="hidden">
+        <button onclick="pollOnce()">Manual Poll</button>
+        <button onclick="startAutoPoll()">Auto Poll (42s)</button>
+        <span id="poll-status"></span>
+    </div>
+    <div id="chat" class="hidden"></div>
+    <div id="input" class="hidden">
+        <input id="msg" placeholder="Type a message..." onkeydown="if(event.key==='Enter') send()">
+        <button onclick="send()">Send</button>
+        <button onclick="clearChat()">Clear</button>
+        <button onclick="switchToGame()">Back to Game</button>
+    </div>
+  `;
+  document.body.appendChild(chatDiv);
+}
+
 function url(room, from) {
   return `http://localhost:8000/nomemo.php?room=${encodeURIComponent(
     room
@@ -145,8 +173,13 @@ function appendMsg(m) {
 
 // Mode switching functions
 function switchToChat() {
+  const chatMode = document.getElementById('chat-mode');
+  if (!chatMode) {
+    console.error('Chat mode not available');
+    return;
+  }
   document.getElementById('game-mode').classList.add('hidden');
-  document.getElementById('chat-mode').classList.remove('hidden');
+  chatMode.classList.remove('hidden');
   document.body.classList.add('chat-mode');
 }
 

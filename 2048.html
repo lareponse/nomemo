@@ -15,28 +15,6 @@
             <!-- Game will be initialized here -->
         </div>
     </div>
-
-    <!-- Chat Mode -->
-    <div id="chat-mode" class="hidden">
-        <h2>nomemo</h2>
-        <div id="info">
-            Room: <input id="room" placeholder="room123">
-            Your name: <input id="from" placeholder="alice">
-            <button onclick="join()">Join</button>
-        </div>
-        <div id="poll-controls" class="hidden">
-            <button onclick="pollOnce()">Manual Poll</button>
-            <button onclick="startAutoPoll()">Auto Poll (42s)</button>
-            <span id="poll-status"></span>
-        </div>
-        <div id="chat" class="hidden"></div>
-        <div id="input" class="hidden">
-            <input id="msg" placeholder="Type a message..." onkeydown="if(event.key==='Enter') send()">
-            <button onclick="send()">Send</button>
-            <button onclick="clearChat()">Clear</button>
-            <button onclick="switchToGame()">Back to Game</button>
-        </div>
-    </div>
     <script src="2048.js"></script>
 </body>
 </html>

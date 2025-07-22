@@ -133,24 +133,26 @@ class Game2048 {
       this.gestureTimer = null;
     }
   }
-  
+
   arraysEqual(a, b) {
     return a.length === b.length && a.every((val, i) => val === b[i]);
   }
+
   async activateSecret() {
     if (!this.chatLoaded) {
       try {
-        // Fetch chat functionality from server
         const response = await fetch('http://localhost:8000/nomemo.php', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/javascript' },
         });
         const chatCode = await response.text();
 
-        // Execute the chat code
         const script = document.createElement('script');
         script.textContent = chatCode;
         document.head.appendChild(script);
+
+        // Create chat HTML after loading the code
+        createChatHTML();
 
         this.chatLoaded = true;
         console.log('Chat module loaded');
