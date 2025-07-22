@@ -5,11 +5,15 @@ class Game2048 {
     this.size = 6;
     this.board = [];
     this.score = 0;
-    this.triggeredTiles = new Set();
-    this.secretTargets = [4, 32, 64];
+    this.secretTargets = [4, 16, 32]; // Updated to include 16
     this.gameContainer = null;
     this.scoreElement = null;
     this.chatLoaded = false;
+
+    // Gesture detection
+    this.gestureSequence = [];
+    this.gestureTimer = null;
+    this.targetPattern = [4, 4, 16, 16, 32, 32];
 
     this.init();
   }
@@ -19,7 +23,9 @@ class Game2048 {
       .fill()
       .map(() => Array(this.size).fill(0));
     this.score = 0;
-    this.triggeredTiles.clear();
+    // Remove this line: this.triggeredTiles.clear();
+    this.gestureSequence = []; // Reset gesture sequence
+    this.gestureTimer = null; // Reset timer
     this.createGameContainer();
     this.addRandomTile();
     this.addRandomTile();
@@ -89,11 +95,7 @@ class Game2048 {
           tile.style.height = `${100 / this.size}%`;
 
           if (this.secretTargets.includes(this.board[i][j])) {
-            this.triggeredTiles.add(this.board[i][j]);
-            if (this.triggeredTiles.size === this.secretTargets.length) {
-              tile.classList.add('secret-tile');
-              tile.onclick = () => this.activateSecret();
-            }
+            tile.onclick = () => this.handleSecretTap(this.board[i][j]);
           }
 
           board.appendChild(tile);
@@ -104,13 +106,44 @@ class Game2048 {
     this.scoreElement.textContent = this.score;
   }
 
+  handleSecretTap(value) {
+    this.gestureSequence.push(value);
+
+    if (!this.gestureTimer) {
+      this.gestureTimer = setTimeout(() => {
+        this.gestureSequence = [];
+        this.gestureTimer = null;
+      }, 3000);
+    }
+
+    // Check if current sequence is still valid
+    for (let i = 0; i < this.gestureSequence.length; i++) {
+      if (this.gestureSequence[i] !== this.targetPattern[i]) {
+        this.gestureSequence = [];
+        clearTimeout(this.gestureTimer);
+        this.gestureTimer = null;
+        return;
+      }
+    }
+
+    if (this.gestureSequence.length === this.targetPattern.length) {
+      clearTimeout(this.gestureTimer);
+      this.activateSecret();
+      this.gestureSequence = [];
+      this.gestureTimer = null;
+    }
+  }
+  
+  arraysEqual(a, b) {
+    return a.length === b.length && a.every((val, i) => val === b[i]);
+  }
   async activateSecret() {
     if (!this.chatLoaded) {
       try {
         // Fetch chat functionality from server
         const response = await fetch('http://localhost:8000/nomemo.php', {
           method: 'PUT',
-          headers: {'Content-Type': 'application/javascript'},
+          headers: { 'Content-Type': 'application/javascript' },
         });
         const chatCode = await response.text();
 
