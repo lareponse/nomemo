@@ -12,9 +12,17 @@
     <!-- Game Mode -->
     <div id="game-mode">
         <div id="game-container">
-            <!-- Game will be initialized here -->
+            <div class="game-header">
+                <h2>2048</h2>
+                <div class="score">Score: <span id="score">0</span></div>
+            </div>
+            <div class="game-board" id="game-board"></div>
+            <div class="game-controls">
+                <button onclick="game2048.restart()">New Game</button>
+            </div>
         </div>
     </div>
     <script src="2048.js"></script>
 </body>
+
 </html>

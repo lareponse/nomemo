@@ -209,18 +209,6 @@ body::before {
     animation: pulse-victory 1.5s infinite;
 }
 
-/* Secret tile highlight */
-.secret-tile {
-    background: linear-gradient(45deg, #ff0080, #00ffff, #ff0080, #00ffff) !important;
-    background-size: 200% 200% !important;
-    animation: neon-shift 2s infinite, pulse-secret 1s infinite !important;
-    border-color: #ffffff !important;
-    color: #000000 !important;
-    box-shadow:
-        0 0 30px #ff0080,
-        0 0 60px #00ffff,
-        inset 0 0 30px rgba(255, 255, 255, 0.2) !important;
-}
 
 @keyframes neon-shift {
 

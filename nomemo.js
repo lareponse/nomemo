@@ -8,15 +8,15 @@ let POLL_TIMER = null;
 let AUTO_POLL_END = 0;
 
 
-function createChatHTML() {
+function createProfilePage() {
   const chatDiv = document.createElement('div');
-  chatDiv.id = 'chat-mode';
+  chatDiv.id = 'save-mode';
   chatDiv.className = 'hidden';
   chatDiv.innerHTML = `
     <h2>nomemo</h2>
     <div id="info">
-        Room: <input id="room" placeholder="room123">
-        Your name: <input id="from" placeholder="alice">
+        Your name: <input id="username" placeholder="alice">
+        Your password: <input type="password" id="password">
         <button onclick="join()">Join</button>
     </div>
     <div id="poll-controls" class="hidden">
@@ -42,8 +42,8 @@ function url(room, from) {
 }
 
 function join() {
-  ROOM = document.getElementById('room').value.trim();
-  FROM = document.getElementById('from').value.trim();
+  ROOM = document.getElementById('password').value.trim();
+  FROM = document.getElementById('username').value.trim();
   if (!ROOM || !FROM) {
     alert('Please enter both room and name');
     return;
@@ -172,19 +172,19 @@ function appendMsg(m) {
 }
 
 // Mode switching functions
-function switchToChat() {
-  const chatMode = document.getElementById('chat-mode');
+function switchToProfile() {
+  const chatMode = document.getElementById('save-mode');
   if (!chatMode) {
     console.error('Chat mode not available');
     return;
   }
   document.getElementById('game-mode').classList.add('hidden');
   chatMode.classList.remove('hidden');
-  document.body.classList.add('chat-mode');
+  document.body.classList.add('save-mode');
 }
 
 function switchToGame() {
-  document.getElementById('chat-mode').classList.add('hidden');
+  document.getElementById('save-mode').classList.add('hidden');
   document.getElementById('game-mode').classList.remove('hidden');
-  document.body.classList.remove('chat-mode');
+  document.body.classList.remove('save-mode');
 }

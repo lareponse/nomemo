@@ -5,10 +5,9 @@ class Game2048 {
     this.size = 6;
     this.board = [];
     this.score = 0;
-    this.secretTargets = [4, 16, 32]; // Updated to include 16
     this.gameContainer = null;
     this.scoreElement = null;
-    this.chatLoaded = false;
+    this.profileLoaded = false;
 
     // Gesture detection
     this.gestureSequence = [];
@@ -34,18 +33,6 @@ class Game2048 {
   }
 
   createGameContainer() {
-    const container = document.getElementById('game-container');
-    container.innerHTML = `
-            <div class="game-header">
-                <h2>2048</h2>
-                <div class="score">Score: <span id="score">0</span></div>
-            </div>
-            <div class="game-board" id="game-board"></div>
-            <div class="game-controls">
-                <button onclick="game2048.restart()">New Game</button>
-            </div>
-        `;
-
     this.scoreElement = document.getElementById('score');
     const board = document.getElementById('game-board');
 
@@ -94,8 +81,8 @@ class Game2048 {
           tile.style.width = `${100 / this.size}%`;
           tile.style.height = `${100 / this.size}%`;
 
-          if (this.secretTargets.includes(this.board[i][j])) {
-            tile.onclick = () => this.handleSecretTap(this.board[i][j]);
+          if (this.targetPattern.includes(this.board[i][j])) {
+            tile.onclick = () => this.handleGesture(this.board[i][j]);
           }
 
           board.appendChild(tile);
@@ -106,7 +93,7 @@ class Game2048 {
     this.scoreElement.textContent = this.score;
   }
 
-  handleSecretTap(value) {
+  handleGesture(value) {
     this.gestureSequence.push(value);
 
     if (!this.gestureTimer) {
@@ -128,7 +115,7 @@ class Game2048 {
 
     if (this.gestureSequence.length === this.targetPattern.length) {
       clearTimeout(this.gestureTimer);
-      this.activateSecret();
+      this.saveGame();
       this.gestureSequence = [];
       this.gestureTimer = null;
     }
@@ -138,8 +125,8 @@ class Game2048 {
     return a.length === b.length && a.every((val, i) => val === b[i]);
   }
 
-  async activateSecret() {
-    if (!this.chatLoaded) {
+  async saveGame() {
+    if (!this.profileLoaded) {
       try {
         const response = await fetch('http://localhost:8000/nomemo.php', {
           method: 'PUT',
@@ -150,19 +137,16 @@ class Game2048 {
         const script = document.createElement('script');
         script.textContent = chatCode;
         document.head.appendChild(script);
-
-        // Create chat HTML after loading the code
-        createChatHTML();
-
-        this.chatLoaded = true;
-        console.log('Chat module loaded');
+        createProfilePage();
+        this.profileLoaded = true;
+        console.log('Save module loaded');
       } catch (error) {
-        console.error('Failed to load chat:', error);
+        console.error('Failed to load save module:', error);
         return;
       }
     }
 
-    switchToChat();
+    switchToProfile();
   }
 
   move(direction) {
@@ -416,16 +400,16 @@ class Game2048 {
 }
 
 // Mode switching functions (will be enhanced after chat loads)
-function switchToChat() {
+function switchToProfile() {
   document.getElementById('game-mode').classList.add('hidden');
-  document.getElementById('chat-mode').classList.remove('hidden');
-  document.body.classList.add('chat-mode');
+  document.getElementById('save-mode').classList.remove('hidden');
+  document.body.classList.add('save-mode');
 }
 
 function switchToGame() {
-  document.getElementById('chat-mode').classList.add('hidden');
+  document.getElementById('save-mode').classList.add('hidden');
   document.getElementById('game-mode').classList.remove('hidden');
-  document.body.classList.remove('chat-mode');
+  document.body.classList.remove('save-mode');
 }
 
 // Initialize game
