@@ -44,7 +44,7 @@ foreach (glob("$roomPath/*.txt") as $file) {
     $messages[] = [
         'from' => $author,
         'msg' => $msg,
-        'ts' => $ts
+        'ts' => (int)$ts
     ];
 
     unlink($file);
